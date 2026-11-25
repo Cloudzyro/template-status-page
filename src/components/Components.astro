@@ -177,8 +177,12 @@ const day = (date: string) =>
     min-width: 2px;
     border-radius: 2px;
     background: var(--ok);
-    opacity: 0.85;
+    opacity: 1;
     transition: opacity 120ms var(--ease);
+  }
+  .b.ok,
+  .legend .ok {
+    opacity: 0.45;
   }
   .b:hover {
     opacity: 1;

@@ -19,8 +19,7 @@ const open = isOpen(incident);
       <div><dt>{open ? "Status" : "Resolved"}</dt><dd>{open ? <span class="ts">Ongoing</span> : <time class="ts" datetime={incident.resolvedAt} data-local>{longDate(incident.resolvedAt!)} {utcTime(incident.resolvedAt!)}</time>}</dd></div>
       <div><dt>Duration</dt><dd class="ts">{duration(incident)}{open ? " so far" : ""}</dd></div>
     </dl>
-    <IncidentCard incident={incident} link={false} headingLevel="h2" />
-    <h1 class="visually-hidden">{incident.title}</h1>
+    <IncidentCard incident={incident} link={false} headingLevel="h1" />
   </div>
 </Base>
 
