@@ -1,0 +1,256 @@
+---
+import { groups, site } from "../data/status";
+import { currentFor, currentLabel, daysFor, uptime } from "../lib/status";
+
+const stateText = { ok: "No incidents", minor: "Degraded", major: "Outage", maintenance: "Maintenance" } as const;
+const day = (date: string) =>
+  new Date(`${date}T00:00:00Z`).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
+---
+
+<section class="section" aria-labelledby="components-title">
+  <div class="section-title">
+    <h2 id="components-title">Systems</h2>
+    <p class="legend" aria-hidden="true">
+      <span><i class="ok"></i>No incidents</span>
+      <span><i class="minor"></i>Degraded</span>
+      <span><i class="major"></i>Outage</span>
+      <span><i class="maintenance"></i>Maintenance</span>
+    </p>
+  </div>
+  <div class="groups">
+    {
+      groups.map((g) => (
+        <div class="card group">
+          <h3 class="g-name">{g.name}</h3>
+          <ul>
+            {g.components.map((c) => {
+              const days = daysFor(c.id);
+              const current = currentFor(c.id);
+              const incidentsCount = days.filter((d) => d.state !== "ok").length;
+              return (
+                <li class="comp">
+                  <div class="c-head">
+                    <div class="c-name">
+                      <span>{c.name}</span>
+                      <span class="c-desc">{c.description}</span>
+                    </div>
+                    <span class:list={["c-state", `t-${current}`]}>
+                      <span class:list={["dot", current]} />
+                      {currentLabel[current]}
+                    </span>
+                  </div>
+                  <div
+                    class="bars"
+                    role="img"
+                    aria-label={`${c.name}: ${uptime(days)}% uptime over the last ${site.days} days, ${incidentsCount} days with incidents`}
+                  >
+                    {days.map((d) => (
+                      <span
+                        class:list={["b", d.state]}
+                        data-tip={`${day(d.date)}|${stateText[d.state]}${d.downMinutes ? `, ${d.downMinutes} min down` : ""}|${d.titles.join("; ")}`}
+                      />
+                    ))}
+                  </div>
+                  <p class="c-foot">
+                    <span class="range-full">{site.days} days ago</span>
+                    <span class="range-short">30 days ago</span>
+                    <span class="up">{uptime(days)}% uptime</span>
+                    <span>Today</span>
+                  </p>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      ))
+    }
+  </div>
+  <div class="tip" role="presentation" hidden></div>
+</section>
+
+<script>
+  const tip = document.querySelector<HTMLElement>(".tip");
+  if (tip) {
+    document.querySelectorAll<HTMLElement>(".bars .b").forEach((bar) => {
+      bar.addEventListener("pointerenter", () => {
+        const [date, state, titles] = (bar.dataset.tip ?? "").split("|");
+        tip.innerHTML = "";
+        const d = document.createElement("strong");
+        d.textContent = date;
+        const s = document.createElement("span");
+        s.textContent = state;
+        tip.append(d, s);
+        if (titles) {
+          const t = document.createElement("span");
+          t.className = "tip-t";
+          t.textContent = titles;
+          tip.append(t);
+        }
+        tip.hidden = false;
+        const r = bar.getBoundingClientRect();
+        const w = tip.offsetWidth;
+        const left = Math.min(Math.max(8, r.left + r.width / 2 - w / 2), window.innerWidth - w - 8);
+        tip.style.left = `${left + window.scrollX}px`;
+        tip.style.top = `${r.top + window.scrollY - tip.offsetHeight - 8}px`;
+      });
+      bar.addEventListener("pointerleave", () => (tip.hidden = true));
+    });
+  }
+</script>
+
+<style>
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 14px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .legend span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .legend i {
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+  }
+  .groups {
+    display: grid;
+    gap: 16px;
+  }
+  .group {
+    padding: 4px 20px;
+  }
+  .g-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--muted);
+    padding: 12px 0 4px;
+  }
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .comp {
+    padding: 16px 0;
+    border-top: 1px solid var(--line);
+  }
+  .g-name + ul .comp:first-child {
+    border-top: 0;
+  }
+  .c-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 16px;
+  }
+  .c-name {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 2px 10px;
+    font-weight: 500;
+  }
+  .c-desc {
+    font-weight: 400;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .c-state {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    white-space: nowrap;
+  }
+  .bars {
+    display: flex;
+    gap: 2px;
+    height: 32px;
+    margin-top: 12px;
+  }
+  .b {
+    flex: 1;
+    min-width: 2px;
+    border-radius: 2px;
+    background: var(--ok);
+    opacity: 0.85;
+    transition: opacity 120ms var(--ease);
+  }
+  .b:hover {
+    opacity: 1;
+  }
+  .b.minor,
+  .legend .minor {
+    background: var(--minor);
+  }
+  .b.major,
+  .legend .major {
+    background: var(--major);
+  }
+  .b.maintenance,
+  .legend .maintenance {
+    background: var(--maint);
+  }
+  .legend .ok {
+    background: var(--ok);
+  }
+  .c-foot {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 8px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .up {
+    color: var(--text-2);
+  }
+  .range-short {
+    display: none;
+  }
+  .tip {
+    position: absolute;
+    z-index: 30;
+    display: grid;
+    gap: 2px;
+    max-width: 260px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    background: var(--text);
+    color: var(--bg);
+    font-size: 12px;
+    pointer-events: none;
+  }
+  .tip[hidden] {
+    display: none;
+  }
+  .tip :global(strong) {
+    font-weight: 500;
+  }
+  .tip :global(.tip-t) {
+    opacity: 0.75;
+  }
+  @media (max-width: 640px) {
+    .b:nth-child(-n + 60) {
+      display: none;
+    }
+    .range-full {
+      display: none;
+    }
+    .range-short {
+      display: inline;
+    }
+    .c-head {
+      flex-direction: column;
+      gap: 4px;
+    }
+    .c-desc {
+      display: none;
+    }
+  }
+</style>

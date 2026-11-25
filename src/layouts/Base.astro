@@ -1,0 +1,140 @@
+---
+import "@fontsource-variable/onest";
+import "@fontsource-variable/jetbrains-mono";
+import "../styles/global.css";
+import { site } from "../data/status";
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const { title, description = site.description } = Astro.props;
+const fullTitle = title ? `${title} | ${site.title}` : site.title;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const ogImage = new URL("/og.png", Astro.site);
+---
+
+<!doctype html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <meta name="theme-color" content="#f7f7f6" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={site.title} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+    <header class="header">
+      <div class="wrap bar">
+        <a class="logo" href="/">
+          <svg width="22" height="22" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="currentColor"></rect><path d="M9 12l7-4 7 4v8l-7 4-7-4z" fill="none" stroke="var(--bg)" stroke-width="2" stroke-linejoin="round"></path><path d="M9 12l7 4 7-4M16 16v8" fill="none" stroke="var(--bg)" stroke-width="2" stroke-linejoin="round"></path></svg>
+          <span>{site.name}</span>
+          <span class="sub">Status</span>
+        </a>
+        <nav aria-label="Main" class="nav">
+          <a href="/history/">History</a>
+          <a href={site.productUrl}>{site.name}</a>
+          <a class="btn btn-primary" href="/#subscribe">Subscribe</a>
+        </nav>
+      </div>
+    </header>
+    <main id="main">
+      <slot />
+    </main>
+    <footer class="footer">
+      <div class="wrap frow">
+        <p>Times are shown in UTC until your browser converts them to your time zone.</p>
+        <p><a href={site.supportUrl}>Contact support</a></p>
+      </div>
+    </footer>
+    <script>
+      // Show every timestamp in the visitor's own time zone.
+      const fmt = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", hourCycle: "h23", timeZoneName: "short" });
+      const timeOnly = new Intl.DateTimeFormat("en-US", { hour: "2-digit", minute: "2-digit", hourCycle: "h23", timeZoneName: "short" });
+      document.querySelectorAll<HTMLTimeElement>("time[data-local]").forEach((el) => {
+        const d = new Date(el.dateTime);
+        if (Number.isNaN(+d)) return;
+        el.title = el.textContent ?? "";
+        el.textContent = (el.dataset.local === "time" ? timeOnly : fmt).format(d).replace(",", "");
+      });
+    </script>
+    <style>
+      .header {
+        border-bottom: 1px solid var(--line);
+      }
+      .bar {
+        height: 64px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+      .logo {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 600;
+        font-size: 16px;
+        text-decoration: none;
+        margin-right: auto;
+      }
+      .sub {
+        font-weight: 400;
+        color: var(--muted);
+      }
+      .nav {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        font-size: 14px;
+      }
+      .nav a:not(.btn) {
+        color: var(--text-2);
+        text-decoration: none;
+      }
+      .nav a:not(.btn):hover {
+        color: var(--text);
+      }
+      .footer {
+        margin-top: 80px;
+        border-top: 1px solid var(--line);
+        padding-block: 24px;
+        font-size: 13px;
+        color: var(--muted);
+      }
+      .frow {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 8px 24px;
+      }
+      @media (max-width: 520px) {
+        .nav {
+          gap: 12px;
+        }
+        .sub {
+          display: none;
+        }
+        .nav a:not(.btn):not(:first-child) {
+          display: none;
+        }
+      }
+    </style>
+  </body>
+</html>

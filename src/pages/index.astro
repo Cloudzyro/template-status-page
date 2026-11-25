@@ -1,0 +1,101 @@
+---
+import Base from "../layouts/Base.astro";
+import IncidentCard from "../components/IncidentCard.astro";
+import Components from "../components/Components.astro";
+import IncidentRows from "../components/IncidentRows.astro";
+import Subscribe from "../components/Subscribe.astro";
+import { site } from "../data/status";
+import { now, openIncidents, overall, sortedIncidents, upcomingMaintenance, utcDate, utcTime } from "../lib/status";
+
+const status = overall();
+const recent = sortedIncidents
+  .filter((i) => i.resolvedAt && new Date(i.resolvedAt) <= now && +now - +new Date(i.startedAt) < 30 * 86_400_000)
+  .slice(0, 4);
+---
+
+<Base>
+  <div class="wrap">
+    <section class:list={["banner", "card", `b-${status.state}`]} aria-live="polite">
+      <span class:list={["dot", "big", status.state]} aria-hidden="true"></span>
+      <div>
+        <h1>{status.text}</h1>
+        <p class="upd">
+          Updated <time class="ts" datetime={site.updatedAt} data-local>{utcDate(site.updatedAt)} {utcTime(site.updatedAt)}</time>
+        </p>
+      </div>
+    </section>
+
+    {
+      openIncidents.length > 0 && (
+        <section class="section" aria-labelledby="active-title">
+          <div class="section-title">
+            <h2 id="active-title">Active incident{openIncidents.length > 1 ? "s" : ""}</h2>
+          </div>
+          <div class="stack">
+            {openIncidents.map((i) => (
+              <IncidentCard incident={i} />
+            ))}
+          </div>
+        </section>
+      )
+    }
+
+    {
+      upcomingMaintenance.length > 0 && (
+        <section class="section" aria-labelledby="maint-title">
+          <div class="section-title">
+            <h2 id="maint-title">Scheduled maintenance</h2>
+          </div>
+          <div class="stack">
+            {upcomingMaintenance.map((m) => (
+              <IncidentCard incident={m} link={false} />
+            ))}
+          </div>
+        </section>
+      )
+    }
+
+    <Components />
+
+    <section class="section" aria-labelledby="past-title">
+      <div class="section-title">
+        <h2 id="past-title">Past 30 days</h2>
+        <a href="/history/">Incident history</a>
+      </div>
+      {recent.length ? <IncidentRows incidents={recent} /> : <p class="card none">No incidents in the past 30 days.</p>}
+    </section>
+
+    <Subscribe />
+  </div>
+</Base>
+
+<style>
+  .banner {
+    margin-top: 40px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 24px;
+  }
+  .big {
+    width: 12px;
+    height: 12px;
+  }
+  h1 {
+    font-size: clamp(22px, 3.5vw, 28px);
+    letter-spacing: -0.01em;
+  }
+  .upd {
+    margin-top: 4px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .stack {
+    display: grid;
+    gap: 12px;
+  }
+  .none {
+    padding: 16px 20px;
+    color: var(--text-2);
+  }
+</style>

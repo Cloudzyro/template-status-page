@@ -1,0 +1,239 @@
+/* Colors: a quiet graphite ramp, so the status colors are the only color on the page.
+   Change them here; the dark set follows the device setting. */
+:root {
+  --bg: #f7f7f6;
+  --bg-card: #ffffff;
+  --bg-raised: #f0f0ee;
+  --text: #18181a;
+  --text-2: #525258;
+  --muted: #6e6e75;
+  --line: rgb(24 24 26 / 0.08);
+  --line-strong: rgb(24 24 26 / 0.15);
+  --ok: #2f9e6a;
+  --minor: #d4931f;
+  --major: #d4483f;
+  --maint: #4a72c9;
+  --empty: #e4e4e1;
+  --ok-text: #1d7a4e;
+  --minor-text: #94620a;
+  --major-text: #b8322a;
+  --maint-text: #3459a8;
+  --font-sans: "Onest Variable", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono Variable", ui-monospace, monospace;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --wrap: 880px;
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #141415;
+    --bg-card: #19191b;
+    --bg-raised: #232325;
+    --text: #ededed;
+    --text-2: #a1a1a6;
+    --muted: #8a8a90;
+    --line: rgb(237 237 237 / 0.08);
+    --line-strong: rgb(237 237 237 / 0.14);
+    --ok: #4cc38a;
+    --minor: #e6a93a;
+    --major: #e5484d;
+    --maint: #6f93e0;
+    --empty: #2c2c2f;
+    --ok-text: #4cc38a;
+    --minor-text: #e6a93a;
+    --major-text: #f07a7d;
+    --maint-text: #8eaaf0;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+a {
+  color: inherit;
+}
+
+h1,
+h2,
+h3 {
+  font-weight: 500;
+  line-height: 1.2;
+  margin: 0;
+}
+
+p {
+  margin: 0;
+}
+
+:focus-visible {
+  outline: 2px solid var(--maint);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.wrap {
+  width: min(100% - 48px, var(--wrap));
+  margin-inline: auto;
+}
+
+.skip {
+  position: absolute;
+  left: 16px;
+  top: -48px;
+  background: var(--text);
+  color: var(--bg);
+  padding: 8px 12px;
+  border-radius: 8px;
+  z-index: 20;
+  text-decoration: none;
+}
+.skip:focus {
+  top: 16px;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+  padding-inline: 14px;
+  border-radius: 8px;
+  font: 500 14px/1 var(--font-sans);
+  text-decoration: none;
+  border: 1px solid var(--line-strong);
+  background: var(--bg-card);
+  color: var(--text);
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    background-color 150ms var(--ease),
+    transform 120ms var(--ease);
+}
+.btn:hover {
+  background: var(--bg-raised);
+}
+.btn:active {
+  transform: scale(0.98);
+}
+.btn-primary {
+  background: var(--text);
+  color: var(--bg);
+  border-color: var(--text);
+}
+.btn-primary:hover {
+  background: var(--text-2);
+}
+
+.section {
+  margin-top: 48px;
+}
+.section-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+.section-title h2 {
+  font-size: 17px;
+}
+.section-title a {
+  font-size: 14px;
+  color: var(--text-2);
+  text-underline-offset: 3px;
+}
+
+/* The signature: every timestamp in mono, in UTC until the visitor's own zone loads. */
+.ts {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: none;
+}
+.dot.operational,
+.dot.ok {
+  background: var(--ok);
+}
+.dot.degraded,
+.dot.minor {
+  background: var(--minor);
+}
+.dot.outage,
+.dot.major {
+  background: var(--major);
+}
+.dot.maintenance {
+  background: var(--maint);
+}
+
+.t-operational {
+  color: var(--ok-text);
+}
+.t-degraded,
+.t-minor {
+  color: var(--minor-text);
+}
+.t-outage,
+.t-major {
+  color: var(--major-text);
+}
+.t-maintenance {
+  color: var(--maint-text);
+}
+
+@media (max-width: 640px) {
+  .wrap {
+    width: min(100% - 32px, var(--wrap));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}

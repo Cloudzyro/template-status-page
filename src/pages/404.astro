@@ -1,0 +1,30 @@
+---
+import Base from "../layouts/Base.astro";
+---
+
+<Base title="Not found" description="This page doesn't exist.">
+  <div class="wrap box">
+    <h1>This page doesn't exist</h1>
+    <p>The incident may have been renamed. The status page and the full history are one click away.</p>
+    <p class="links"><a class="btn btn-primary" href="/">Current status</a><a class="btn" href="/history/">Incident history</a></p>
+  </div>
+</Base>
+
+<style>
+  .box {
+    padding-top: 80px;
+    display: grid;
+    gap: 16px;
+  }
+  h1 {
+    font-size: 28px;
+  }
+  p {
+    color: var(--text-2);
+  }
+  .links {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+  }
+</style>

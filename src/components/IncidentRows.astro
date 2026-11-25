@@ -1,0 +1,81 @@
+---
+import type { Incident } from "../data/status";
+import { componentName, duration, utcDate, utcTime } from "../lib/status";
+
+interface Props {
+  incidents: Incident[];
+}
+const { incidents } = Astro.props;
+---
+
+<ul class="rows card">
+  {
+    incidents.map((i) => {
+      const tone = i.impact;
+      const last = [...i.updates].sort((a, b) => +new Date(b.at) - +new Date(a.at))[0];
+      return (
+        <li>
+          <a href={`/incidents/${i.id}/`}>
+            <span class:list={["dot", tone]} aria-hidden="true" />
+            <span class="main">
+              <span class="title">{i.title}</span>
+              <span class="detail">{last?.text}</span>
+              <span class="meta">
+                <time class="ts" datetime={i.startedAt} data-local>
+                  {utcDate(i.startedAt)} {utcTime(i.startedAt)}
+                </time>
+                <span class="ts">{i.resolvedAt ? duration(i) : "Ongoing"}</span>
+                <span class="ts">{i.components.map(componentName).join(", ")}</span>
+              </span>
+            </span>
+          </a>
+        </li>
+      );
+    })
+  }
+</ul>
+
+<style>
+  .rows {
+    list-style: none;
+    margin: 0;
+    padding: 4px 0;
+  }
+  li + li {
+    border-top: 1px solid var(--line);
+  }
+  a {
+    display: grid;
+    grid-template-columns: 8px minmax(0, 1fr);
+    gap: 14px;
+    padding: 14px 20px;
+    text-decoration: none;
+    transition: background-color 150ms var(--ease);
+  }
+  a:hover {
+    background: var(--bg-raised);
+  }
+  .dot {
+    margin-top: 7px;
+  }
+  .main {
+    display: grid;
+    gap: 4px;
+  }
+  .title {
+    font-weight: 500;
+  }
+  .detail {
+    color: var(--text-2);
+    font-size: 14px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 16px;
+  }
+</style>

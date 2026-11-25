@@ -1,0 +1,54 @@
+---
+import Base from "../../layouts/Base.astro";
+import IncidentCard from "../../components/IncidentCard.astro";
+import { incidents } from "../../data/status";
+import { duration, isOpen, longDate, utcTime } from "../../lib/status";
+
+export function getStaticPaths() {
+  return incidents.map((incident) => ({ params: { id: incident.id }, props: { incident } }));
+}
+const { incident } = Astro.props;
+const open = isOpen(incident);
+---
+
+<Base title={incident.title} description={incident.updates[0]?.text}>
+  <div class="wrap page">
+    <a class="back" href="/history/">Incident history</a>
+    <dl class="facts">
+      <div><dt>Started</dt><dd><time class="ts" datetime={incident.startedAt} data-local>{longDate(incident.startedAt)} {utcTime(incident.startedAt)}</time></dd></div>
+      <div><dt>{open ? "Status" : "Resolved"}</dt><dd>{open ? <span class="ts">Ongoing</span> : <time class="ts" datetime={incident.resolvedAt} data-local>{longDate(incident.resolvedAt!)} {utcTime(incident.resolvedAt!)}</time>}</dd></div>
+      <div><dt>Duration</dt><dd class="ts">{duration(incident)}{open ? " so far" : ""}</dd></div>
+    </dl>
+    <IncidentCard incident={incident} link={false} headingLevel="h2" />
+    <h1 class="visually-hidden">{incident.title}</h1>
+  </div>
+</Base>
+
+<style>
+  .page {
+    padding-top: 40px;
+  }
+  .back {
+    font-size: 14px;
+    color: var(--text-2);
+    text-underline-offset: 3px;
+  }
+  .facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 40px;
+    margin: 24px 0;
+  }
+  dt {
+    font-size: 13px;
+    color: var(--muted);
+  }
+  dd {
+    margin: 2px 0 0;
+  }
+  dd .ts,
+  dd.ts {
+    font-size: 13px;
+    color: var(--text);
+  }
+</style>

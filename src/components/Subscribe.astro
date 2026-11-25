@@ -1,0 +1,114 @@
+---
+import { site, subscribe } from "../data/status";
+
+// Set PUBLIC_FORM_ENDPOINT (Formspree, Basin, a Supabase function...) to collect addresses.
+// Without it, the form offers an email link instead.
+const endpoint = (import.meta.env.PUBLIC_FORM_ENDPOINT ?? "").trim();
+const mailto = `mailto:${site.email}?subject=Subscribe%20me%20to%20status%20updates`;
+---
+
+<section id="subscribe" class="section card sub" aria-labelledby="sub-title">
+  <div class="copy">
+    <h2 id="sub-title">{subscribe.title}</h2>
+    <p>{subscribe.text}</p>
+  </div>
+  <form method="post" action={endpoint || undefined} data-endpoint={endpoint} data-done={subscribe.done}>
+    <label class="visually-hidden" for="sub-email">Email address</label>
+    <input id="sub-email" name="email" type="email" autocomplete="email" placeholder="you@company.com" required />
+    <input type="hidden" name="list" value="status" />
+    <div class="visually-hidden" aria-hidden="true">
+      <label>Leave this empty <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" /></label>
+    </div>
+    <button class="btn btn-primary" type="submit">Subscribe</button>
+  </form>
+  <p class="status" role="status" aria-live="polite">
+    {
+      !endpoint && (
+        <span class="note">
+          Email alerts aren't connected yet. <a href={mailto}>Email us</a> and we'll add you by hand.
+        </span>
+      )
+    }
+  </p>
+</section>
+
+<script>
+  const form = document.querySelector<HTMLFormElement>("#subscribe form");
+  if (form) {
+    const status = document.querySelector<HTMLElement>("#subscribe .status")!;
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const data = new FormData(form);
+      if (data.get("_gotcha")) return;
+      const endpoint = form.dataset.endpoint;
+      if (!endpoint) {
+        status.querySelector("a")?.focus();
+        return;
+      }
+      const button = form.querySelector<HTMLButtonElement>("button")!;
+      button.disabled = true;
+      try {
+        const res = await fetch(endpoint, { method: "POST", body: data, headers: { Accept: "application/json" } });
+        if (!res.ok) throw new Error(String(res.status));
+        form.reset();
+        status.textContent = form.dataset.done ?? "Subscribed.";
+      } catch {
+        status.textContent = "That didn't go through. Please try again in a minute.";
+      } finally {
+        button.disabled = false;
+      }
+    });
+  }
+</script>
+
+<style>
+  .sub {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 12px 32px;
+    padding: 24px;
+    align-items: center;
+  }
+  .copy {
+    display: grid;
+    gap: 6px;
+  }
+  h2 {
+    font-size: 17px;
+  }
+  .copy p {
+    color: var(--text-2);
+  }
+  form {
+    display: flex;
+    gap: 8px;
+  }
+  input[type="email"] {
+    flex: 1;
+    min-width: 0;
+    height: 36px;
+    padding: 0 12px;
+    font: 400 14px var(--font-sans);
+    color: var(--text);
+    background: var(--bg);
+    border: 1px solid var(--line-strong);
+    border-radius: 8px;
+  }
+  .status {
+    grid-column: 2;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .status a {
+    color: var(--text);
+    text-underline-offset: 3px;
+  }
+  @media (max-width: 720px) {
+    .sub {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .status {
+      grid-column: 1;
+    }
+  }
+</style>

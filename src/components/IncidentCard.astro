@@ -1,0 +1,145 @@
+---
+import type { Incident } from "../data/status";
+import { componentName, impactLabel, longDate, phaseLabel, utcDate, utcTime } from "../lib/status";
+
+interface Props {
+  incident: Incident;
+  link?: boolean;
+  headingLevel?: "h2" | "h3";
+}
+const { incident, link = true, headingLevel = "h3" } = Astro.props;
+const H = headingLevel;
+const tone = incident.impact === "maintenance" ? "maintenance" : incident.impact;
+const latestFirst = [...incident.updates].sort((a, b) => +new Date(b.at) - +new Date(a.at));
+---
+
+<article class:list={["card", "inc", `inc-${tone}`]}>
+  <header class="inc-head">
+    <H class="inc-title">
+      {link ? <a href={`/incidents/${incident.id}/`}>{incident.title}</a> : incident.title}
+    </H>
+    <p class="inc-meta">
+      <span class:list={["impact", `t-${tone}`]}><span class:list={["dot", tone]}></span>{impactLabel[incident.impact]}</span>
+      <span>{incident.components.map(componentName).join(", ")}</span>
+    </p>
+  </header>
+  <ol class="updates">
+    {
+      latestFirst.map((u) => (
+        <li>
+          <p class="u-head">
+            <span class="phase">{phaseLabel(u.phase)}</span>
+            <time class="ts" datetime={u.at} data-local>
+              {utcDate(u.at)} {utcTime(u.at)}
+            </time>
+          </p>
+          <p class="u-text">{u.text}</p>
+        </li>
+      ))
+    }
+  </ol>
+  {
+    incident.impact === "maintenance" && incident.resolvedAt && (
+      <p class="window">
+        Window: {longDate(incident.startedAt)},{" "}
+        <time datetime={incident.startedAt} data-local="time">{utcTime(incident.startedAt)}</time> to{" "}
+        <time datetime={incident.resolvedAt} data-local="time">{utcTime(incident.resolvedAt)}</time>
+      </p>
+    )
+  }
+</article>
+
+<style>
+  .inc {
+    overflow: hidden;
+    border-left: 3px solid var(--line-strong);
+  }
+  .inc-minor {
+    border-left-color: var(--minor);
+  }
+  .inc-major {
+    border-left-color: var(--major);
+  }
+  .inc-maintenance {
+    border-left-color: var(--maint);
+  }
+  .inc-head {
+    padding: 16px 20px 12px;
+    display: grid;
+    gap: 6px;
+  }
+  .inc-title {
+    font-size: 17px;
+  }
+  .inc-title a {
+    text-decoration: none;
+  }
+  .inc-title a:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-color: var(--line-strong);
+  }
+  .inc-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 16px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .impact {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 500;
+  }
+  .impact .dot {
+    width: 6px;
+    height: 6px;
+  }
+  .updates {
+    list-style: none;
+    margin: 0;
+    padding: 0 20px 16px;
+  }
+  li {
+    position: relative;
+    padding: 12px 0 12px 20px;
+    border-top: 1px solid var(--line);
+  }
+  li::before {
+    content: "";
+    position: absolute;
+    left: 2px;
+    top: 19px;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    border: 1.5px solid var(--muted);
+    background: var(--bg-card);
+  }
+  li:first-child::before {
+    border-color: var(--text);
+    background: var(--text);
+  }
+  .u-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 12px;
+  }
+  .phase {
+    font-weight: 500;
+    font-size: 14px;
+  }
+  .u-text {
+    margin-top: 4px;
+    color: var(--text-2);
+  }
+  .window {
+    padding: 12px 20px;
+    border-top: 1px solid var(--line);
+    background: var(--bg-raised);
+    font-size: 13px;
+    color: var(--text-2);
+  }
+</style>
